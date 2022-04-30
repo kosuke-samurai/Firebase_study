@@ -150,7 +150,7 @@
       documents.forEach(function (document) {
         htmlElements.push(
           `<li id= "${document.id}">
-            <p>${document.data.name} at ${convertTimestampToDatetime(document.data.time.seconds)}</p>
+            <p>${document.data.name} at ${convertTimestampToDatetime(document.data.time?.seconds)}</p>
             <p>${document.data.text}</p>
           </li>`
         );
