@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ログイン認証</title>
+
+    <script src="https://www.gstatic.com/firebasejs/ui/6.0.1/firebase-ui-auth.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/6.0.1/firebase-ui-auth.css" />
+
+</head>
+
+<body>
+
+    <div>
+        ユーザー名<input type="text" id="namae">
+    </div>
+    <div>
+        秘密の合言葉<input type="text" id="kotoba">
+    </div>
+    <div>
+        メールアドレス<input id="mail" type="mailAddress">
+    </div>
+    <div>
+        パスワード<input id="password" type="password">
+    </div>
+    <button id="loginbutton">ログイン</button>
+    <button type="button" id="register">新規登録</button>
+
+    <p id="comunityname"></p>
+
+
+
+
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js";
+        import {
+            getAuth,
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            signOut,
+            onAuthStateChanged,
+            updateProfile
+        } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-auth.js";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+
+        import {
+            getFirestore,
+            collection,
+            doc,
+            addDoc,
+            setDoc,
+            serverTimestamp,
+            query,
+            orderBy,
+            onSnapshot,
+        } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "",
+            authDomain: "localsns-10c26.firebaseapp.com",
+            projectId: "localsns-10c26",
+            storageBucket: "localsns-10c26.appspot.com",
+            messagingSenderId: "86474711608",
+            appId: "1:86474711608:web:ee1150ca3e52786bc93ccd"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+
+        /*アカウント作成*/
+        function loginsend() {
+
+            let email = document.getElementById('mail').value;
+            let password = document.getElementById('password').value;
+            createUserWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // Signed in
+
+                    const uid = userCredential.user.uid;
+                    console.log(uid);
+                    alert("登録!");
+                    // ...
+                    const update = {
+                        displayname: document.getElementById('namae').value,
+                        displaword: document.getElementById('kotoba').value,
+                    }
+
+                    console.log(update);
+
+                    setDoc(doc(db, "uers", uid), update);
+
+                    /*データを取得する処理*/
+                    const q = query(collection(db, "uers"));
+
+                    onSnapshot(q, (querySnapshot) => {
+
+                        /*オンラインに保存しているデータを使いたい場合は必ず{}内に処理を記述する*/
+                        /*querySnapshotに全部のデータが入っている*/
+                        console.log(querySnapshot.docs);
+
+                        /*生データは使いにくいので、ほしいものだけを取り出してdocumentsに入れる*/
+
+                        /*🔽 ↓以下の処理は毎回、同じでイケるので使いまわしてOKD🔽 */
+                        const documentinfo = [];
+
+                        querySnapshot.docs.forEach(function (doc) {
+                            const data = {
+                                id: doc.id,
+                                data: doc.data(),
+                            };
+                            documentinfo.push(data);
+                        });
+
+                        console.log(documentinfo);
+
+                        const uid = user.uid;
+                        documentinfo.forEach(function (document) {
+
+                            if (document.id === uid) {
+                                console.log(document.data.displayname);
+                                comunityname.innerHTML = `${document.data.displayname}のコミュニティー`;
+                            };
+
+
+                        });
+
+                    });
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    alert("登録できません");
+
+                    // ..
+                });
+        }
+        loginsend();
+
+
+
+
+        /*ログイン*/
+
+        function login() {
+            let email = document.getElementById('mail').value;
+            let password = document.getElementById('password').value;
+
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // Signed in
+                    const user = userCredential.user;
+                    console.log(user);
+                    // ...
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    alert("ログインできません");
+                });
+        }
+
+        function special() {
+            const auth = getAuth(app);
+
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    // User is signed in, see docs for a list of available properties
+                    // https://firebase.google.com/docs/reference/js/firebase.User
+                    const uid = user.uid;
+                    // ...
+                    console.log(uid);
+                    const email = user.email;
+                    console.log(email);
+
+                    /*データを取得する処理*/
+                    const q = query(collection(db, "uers"));
+
+                    onSnapshot(q, (querySnapshot) => {
+
+                        /*オンラインに保存しているデータを使いたい場合は必ず{}内に処理を記述する*/
+                        /*querySnapshotに全部のデータが入っている*/
+                        console.log(querySnapshot.docs);
+
+                        /*生データは使いにくいので、ほしいものだけを取り出してdocumentsに入れる*/
+
+                        /*🔽 ↓以下の処理は毎回、同じでイケるので使いまわしてOKD🔽 */
+                        const documentinfo = [];
+
+                        querySnapshot.docs.forEach(function (doc) {
+                            const data = {
+                                id: doc.id,
+                                data: doc.data(),
+                            };
+                            documentinfo.push(data);
+                        });
+
+                        console.log(documentinfo);
+
+                        const uid = user.uid;
+                        console.log(uid);
+                        documentinfo.forEach(function (document) {
+
+                            if (document.id === uid) {
+                                console.log(document.data.displayname);
+                                comunityname.innerHTML = `${document.data.displayname}のコミュニティー`;
+                            };
+                        });
+
+                    });
+
+                } else {
+                    // User is signed out
+                    // ...
+                }
+            });
+        }
+
+        special();
+
+
+
+        /*ログイン情報の取得*/
+        function logininfo() {
+
+            const auth = getAuth(app);
+
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    // User is signed in, see docs for a list of available properties
+                    // https://firebase.google.com/docs/reference/js/firebase.User
+                } else {
+                    // User is signed out
+                    // ...
+                }
+            });
+        }
+        logininfo();
+
+
+        register.addEventListener("click", (e) => {
+            loginsend();
+            /*logininfo();*/
+        });
+
+
+        loginbutton.addEventListener("click", (e) => {
+
+            login();
+            special();
+
+        });
+
+
+
+
+
+
+    </script>
+
+</body>
+
+
+
+
+</html>

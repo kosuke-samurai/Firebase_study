@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/sample.css">
+    <title>ローカルSNS</title>
+
+    <style>
+        #output li {
+            background: rgb(169, 201, 234);
+            width: 800px;
+            margin: 10px auto;
+            border-radius: 10px;
+
+        }
+    </style>
+
+    <script src="https://www.gstatic.com/firebasejs/ui/6.0.1/firebase-ui-auth.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/6.0.1/firebase-ui-auth.css" />
+</head>
+
+<body>
+
+    <header>
+        <h1>地域専用SNS</h1>
+        <p class="headerp">超ローカルコミュニティへようこそ</p>
+
+    </header>
+
+    <main>
+
+        <div class="tab_area">
+            <ul class="menu">
+                <li id="tab" class="tab">コミュニティーを作る</li>
+                <li id="tab" class="tab">コミュニティーに入る</li>
+            </ul>
+        </div>
+
+        <div id="create" class="content">
+            <dl>
+                <dt>どのエリアのコミュニティーを作りますか？ <br>（例：〇〇公園周辺、〇〇高校周辺）</dt>
+                <dd>
+                    <input type="text" id="comuname">
+                </dd>
+            </dl>
+
+            <dl>
+                <dt>そのエリアにいる人しか分からない、<br>『秘密の質問』を作りましょう</dt>
+                <dd>
+                    <input type="text" id="question">
+                </dd>
+            </dl>
+
+            <dl>
+                <dt>「秘密の質問」の答えは？（＝秘密の合言葉）</dt>
+                <dd>
+                    <input type="text" id="answer">
+                </dd>
+
+            </dl>
+
+            <div>
+                <ul class="menu">
+                    <li id="send" class="tab">作成</li>
+                    <li id="rewrite" class="tab">修正</li>
+                </ul>
+            </div>
+        </div>
+
+
+
+
+        <div id="join" class="content">
+
+
+            <div id="sendinfo2">
+                <p id="comunityname"></p>
+                <p id="scretquestion"></p>
+                <dl class="pxchange">
+                    <dt class="pxchange">お名前</dt>
+                    <dd>
+                        <input type="text" id="yourname">
+                    </dd>
+                </dl>
+                <dl>
+                    <dt class="pxchange">秘密の質問への答え(あなたの合言葉)</dt>
+                    <dd>
+                        <input type="text" id="yourword">
+                    </dd>
+                </dl>
+                <dl>
+                    <dt class="pxchange">
+                        メールアドレス
+                    </dt>
+                    <dd>
+                        <input id="mail" type="mailAddress">
+                    </dd>
+                </dl>
+                <dl>
+                    <dt class="pxchange">
+                        パスワード（6文字以上）
+                    </dt>
+                    <dd>
+                        <input id="password" type="password">
+                    </dd>
+                </dl>
+                <div>
+                    <button type="button" id="loginbutton">ログイン</button>
+                    <button type="button" id="register">登録</button>
+                </div>
+
+            </div>
+
+
+            <div id="tweet_area" class="tweet_area">
+                <div>
+                    <p id="comunityname2"></p>
+                    <p id="scretansewr">このコミュニティーの合言葉</p>
+                </div>
+
+                <form>
+                    <fieldset>
+                        <legend>つぶやく</legend>
+                        <div>
+                            お名前： <span id="tweetname"></span>
+                        </div>
+                        <div>
+                            あなたの合言葉：<span id="tweetsecret"></span>
+                        </div>
+                        <div>
+                            <textarea name="" id="tweettext" cols="30" rows="10"></textarea>
+                        </div>
+                        <div>
+                            <button type="button" id="tweet">つぶやく</button>
+                        </div>
+                    </fieldset>
+                </form>
+
+                <ul id="output">
+
+                </ul>
+            </div>
+
+        </div>
+
+        <footer>©たかはし</footer>
+
+    </main>
+
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script>
+
+        // メニュー選択 //
+
+        $(function () {
+            let tabs = $(".tab"); // tabのクラスを全て取得し、変数tabsに配列で定義
+            $(".tab").on("click", function () { // tabをクリックしたらイベント発火
+                $(".active").removeClass("active"); // activeクラスを消す
+                $(this).addClass("active"); // クリックした箇所にactiveクラスを追加
+                const index = tabs.index(this); // クリックした箇所がタブの何番目か判定し、定数indexとして定義
+                $(".content").removeClass("show").eq(index).addClass("show"); // showクラスを消して、contentクラスのindex番目にshowクラスを追加
+            });
+        });
+
+
+
+
+
+        /*
+                $("#sendinfo").on("click", function () {
+                    $("#tweet_area").css("display", "inline");
+        
+                    const yourword = document.getElementById("yourword").value;
+                    const yourname = document.getElementById("yourname").value;
+                    console.log(yourword);
+        
+                    document.getElementById("tweetname").textContent = yourname;
+                    document.getElementById("tweetsecret").textContent = yourword;
+        
+                    $("#sendinfo2").css("display", "none");
+        
+                });
+                */
+
+
+        // 日時をいい感じの形式にする関数
+        function convertTimestampToDatetime(timestamp) {
+            const _d = timestamp ? new Date(timestamp * 1000) : new Date();
+            const Y = _d.getFullYear();
+            const m = (_d.getMonth() + 1).toString().padStart(2, '0');
+            const d = _d.getDate().toString().padStart(2, '0');
+            const H = _d.getHours().toString().padStart(2, '0');
+            const i = _d.getMinutes().toString().padStart(2, '0');
+            const s = _d.getSeconds().toString().padStart(2, '0');
+            return `${Y}/${m}/${d} ${H}:${i}:${s}`;
+        }
+
+
+
+    </script>
+
+    <!-- 以下firebaseのコード貼り付け -->
+
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js";
+        import {
+            getAuth,
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            signOut,
+            onAuthStateChanged,
+            updateProfile
+        } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-auth.js";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+
+        // 🔽 `onSnapshot`を追記🔽*/
+        // 🔽 `query`と`orderBy,setDoc,doc`を追記*/
+        import {
+            getFirestore,
+            collection,
+            doc,
+            addDoc,
+            setDoc,
+            serverTimestamp,
+            query,
+            orderBy,
+            onSnapshot,
+        } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "",
+            authDomain: "localsns-10c26.firebaseapp.com",
+            projectId: "localsns-10c26",
+            storageBucket: "localsns-10c26.appspot.com",
+            messagingSenderId: "86474711608",
+            appId: "1:86474711608:web:ee1150ca3e52786bc93ccd"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        /*アカウント作成*/
+        function loginsend() {
+
+            let email = document.getElementById('mail').value;
+            let password = document.getElementById('password').value;
+            createUserWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // Signed in
+
+                    const uid = userCredential.user.uid;
+                    console.log(uid);
+                    alert("登録しました!");
+                    // ...
+                    const update = {
+                        displayname: document.getElementById('yourname').value,
+                        displaword: document.getElementById('yourword').value,
+                    }
+
+                    console.log(update);
+
+                    setDoc(doc(db, "uerss", uid), update);
+
+                    /*データを取得する処理*/
+                    const q = query(collection(db, "uerss"));
+
+                    onSnapshot(q, (querySnapshot) => {
+
+                        /*オンラインに保存しているデータを使いたい場合は必ず{}内に処理を記述する*/
+                        /*querySnapshotに全部のデータが入っている*/
+                        console.log(querySnapshot.docs);
+
+                        /*生データは使いにくいので、ほしいものだけを取り出してdocumentsに入れる*/
+
+                        /*🔽 ↓以下の処理は毎回、同じでイケるので使いまわしてOKD🔽 */
+                        const documentinfo = [];
+
+                        querySnapshot.docs.forEach(function (doc) {
+                            const data = {
+                                id: doc.id,
+                                data: doc.data(),
+                            };
+                            documentinfo.push(data);
+                        });
+
+                        console.log(documentinfo);
+
+                        const uid = user.uid;
+                        documentinfo.forEach(function (document) {
+
+                            if (document.id === uid) {
+                                console.log(document.data.displayname);
+                                tweetname.innerHTML = `${document.data.displayname}`;
+                                tweetsecret.innerHTML = `『${document.data.displaword}』`;
+                            };
+
+
+                        });
+
+                    });
+                    $("#tweet_area").css("display", "inline");
+                    $("#sendinfo2").css("display", "none");
+                })
+                .catch((error) => {
+                    $("#tweet_area").css("display", "none");
+                    $("#sendinfo2").css("display", "inline");
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    alert("登録できません");
+
+
+                    // ..
+                });
+        }
+
+
+        /*ログイン*/
+
+        function login() {
+            let email = document.getElementById('mail').value;
+            let password = document.getElementById('password').value;
+
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // Signed in
+                    const user = userCredential.user;
+                    console.log(user);
+                    // ...
+                    $("#tweet_area").css("display", "inline");
+                    $("#sendinfo2").css("display", "none");
+                    alert("ログインしましたん");
+                })
+                .catch((error) => {
+                    $("#tweet_area").css("display", "none");
+                    $("#sendinfo2").css("display", "inline");
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    alert("ログインできません");
+                });
+        }
+
+        /*ログイン情報の取得*/
+        function special() {
+            const auth = getAuth(app);
+
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    // User is signed in, see docs for a list of available properties
+                    // https://firebase.google.com/docs/reference/js/firebase.User
+                    const uid = user.uid;
+                    // ...
+                    console.log(uid);
+                    const email = user.email;
+                    console.log(email);
+
+                    /*データを取得する処理*/
+                    const q = query(collection(db, "uerss"));
+
+                    onSnapshot(q, (querySnapshot) => {
+
+                        /*オンラインに保存しているデータを使いたい場合は必ず{}内に処理を記述する*/
+                        /*querySnapshotに全部のデータが入っている*/
+                        console.log(querySnapshot.docs);
+
+                        /*生データは使いにくいので、ほしいものだけを取り出してdocumentsに入れる*/
+
+                        /*🔽 ↓以下の処理は毎回、同じでイケるので使いまわしてOKD🔽 */
+                        const documentinfo = [];
+
+                        querySnapshot.docs.forEach(function (doc) {
+                            const data = {
+                                id: doc.id,
+                                data: doc.data(),
+                            };
+                            documentinfo.push(data);
+                        });
+
+                        console.log(documentinfo);
+
+                        const uid = user.uid;
+                        console.log(uid);
+                        documentinfo.forEach(function (document) {
+
+                            if (document.id === uid) {
+                                console.log(document.data.displayname);
+                                tweetname.innerHTML = `${document.data.displayname}`;
+                                tweetsecret.innerHTML = `『${document.data.displaword}』`;
+
+                            };
+                        });
+
+                    });
+
+                } else {
+                    // User is signed out
+                    // ...
+                }
+            });
+        }
+
+
+
+        register.addEventListener("click", (e) => {
+            loginsend();
+
+        });
+
+
+        loginbutton.addEventListener("click", (e) => {
+
+            login();
+            special();
+
+        });
+
+
+
+        //*コミュニティーを作成*//
+        //*コミュニティーを作成*//
+        //*コミュニティーを作成*//
+        function send() {
+            const postcreate = {
+                comuname: $("#comuname").val(),
+                question: $("#question").val(),
+                answer: $("#answer").val(),
+                time: serverTimestamp(),
+            };
+            addDoc(collection(db, "thread"), postcreate);
+            console.log(postcreate);
+        };
+
+
+
+        $("#send").on("click", function () {
+            send();
+        });
+
+        /*データを取得する処理*/
+        const q = query(collection(db, "thread"), orderBy("time", "desc"));
+
+        onSnapshot(q, (querySnapshot) => {
+
+            /*オンラインに保存しているデータを使いたい場合は必ず{}内に処理を記述する*/
+            /*querySnapshotに全部のデータが入っている*/
+            console.log(querySnapshot.docs);
+
+            /*生データは使いにくいので、ほしいものだけを取り出してdocumentsに入れる*/
+
+            /*🔽 ↓以下の処理は毎回、同じでイケるので使いまわしてOKD🔽 */
+            const documents = [];
+
+            querySnapshot.docs.forEach(function (doc) {
+                const data = {
+                    id: doc.id,
+                    data: doc.data(),
+                };
+                documents.push(data);
+            });
+
+            console.log(documents);
+
+
+            let comunityname = document.getElementById("comunityname");
+            let scretquestion = document.getElementById("scretquestion");
+            let scretansewr = document.getElementById("scretansewr");
+            let comunityname2 = document.getElementById("comunityname2");
+
+            documents.forEach(function (document) {
+
+                if (document.id === "aaIlB97HvGtzDsgoItVf") {
+                    console.log(document.data.comuname);
+                    comunityname.innerHTML = `${document.data.comuname}のコミュニティー`;
+                    comunityname2.innerHTML = `${document.data.comuname}のコミュニティー`;
+                    scretquestion.innerHTML = `秘密の質問：『${document.data.question}』`;
+                    scretansewr.innerHTML = `このコミュニティーの合言葉：『${document.data.answer}』`;
+                };
+
+
+            });
+
+
+
+        });
+
+        /*ツイート送信*/
+        function tweetsend() {
+            const auth = getAuth(app);
+
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    // User is signed in, see docs for a list of available properties
+                    // https://firebase.google.com/docs/reference/js/firebase.User
+                    const uid = user.uid;
+                    // ...
+                    console.log(uid);
+                    const email = user.email;
+                    console.log(email);
+
+                    /*データを取得する処理*/
+                    const q = query(collection(db, "uerss"));
+
+                    onSnapshot(q, (querySnapshot) => {
+
+                        /*オンラインに保存しているデータを使いたい場合は必ず{}内に処理を記述する*/
+                        /*querySnapshotに全部のデータが入っている*/
+                        console.log(querySnapshot.docs);
+
+                        /*生データは使いにくいので、ほしいものだけを取り出してdocumentsに入れる*/
+
+                        /*🔽 ↓以下の処理は毎回、同じでイケるので使いまわしてOKD🔽 */
+                        const documentinfo = [];
+
+                        querySnapshot.docs.forEach(function (doc) {
+                            const data = {
+                                id: doc.id,
+                                data: doc.data(),
+                            };
+                            documentinfo.push(data);
+                        });
+
+                        console.log(documentinfo);
+
+                        const uid = user.uid;
+                        console.log(uid);
+                        documentinfo.forEach(function (document) {
+
+                            if (document.id === uid) {
+                                console.log(document.data.displayname);
+                                console.log(document.data.displaword);
+
+                                const tweetData = {
+                                    tweetname: document.data.displayname,
+                                    tweetsecret: document.data.displaword,
+                                    tweettext: $("#tweettext").val(),
+                                    time: serverTimestamp(),
+                                };
+                                addDoc(collection(db, "chaat"), tweetData);
+                                console.log(tweetData);
+                                $("#tweettext").val("");
+
+                            };
+                        });
+
+                    });
+                } else {
+                    // User is signed out
+                    // ...
+                }
+            });
+
+        };
+
+
+
+        /*ポストの実行*/
+        $("#tweet").on("click", function () {
+            tweetsend();
+        });
+
+        /*ポストの取得*/
+
+        const qt = query(collection(db, "chaat"), orderBy("time", "desc"));
+
+        onSnapshot(qt, (querySnapshot) => {
+
+            console.log(querySnapshot.docs);
+
+            const documenttweet = [];
+
+            querySnapshot.docs.forEach(function (doc) {
+                const data = {
+                    id: doc.id,
+                    data: doc.data(),
+                };
+                documenttweet.push(data);
+            });
+
+            console.log(documenttweet);
+
+            const htmlElements = [];
+            documenttweet.forEach(function (documenttweets) {
+                htmlElements.push(
+                    `<li id= "${documenttweets.id}" class=output>
+            <p>ユーザー名：${documenttweets.data.tweetname}</p>
+            <p>合言葉：${documenttweets.data.tweetsecret}</p>
+            <p>つぶやき：<br>${documenttweets.data.tweettext}<br><span class=fontsmall>(${convertTimestampToDatetime(documenttweets.data.time?.seconds)})</span></p>
+          </li>`
+                );
+            });
+
+            $("#output").html(htmlElements);
+
+        });
+
+
+
+    </script>
+
+
+
+</body>
+
+</html>
