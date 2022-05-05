@@ -131,6 +131,9 @@
                             あなたの合言葉：<span id="tweetsecret"></span>
                         </div>
                         <div>
+                            <button type="button" id="fastlogin" class="fastlogin">ユーザー情報更新</button>
+                        </div>
+                        <div>
                             <textarea name="" id="tweettext" cols="30" rows="10"></textarea>
                         </div>
                         <div>
@@ -236,7 +239,7 @@
 
         // Your web app's Firebase configuration
         const firebaseConfig = {
-            apiKey: "",
+            apiKey: "AIzaSyAsVt83diEXjIv3CpBMKLX62Yf58vb8g6k",
             authDomain: "localsns-10c26.firebaseapp.com",
             projectId: "localsns-10c26",
             storageBucket: "localsns-10c26.appspot.com",
@@ -271,43 +274,43 @@
 
                     setDoc(doc(db, "uerss", uid), update);
 
-                    /*データを取得する処理*/
+                    /*データを取得する処理
                     const q = query(collection(db, "uerss"));
 
                     onSnapshot(q, (querySnapshot) => {
 
                         /*オンラインに保存しているデータを使いたい場合は必ず{}内に処理を記述する*/
-                        /*querySnapshotに全部のデータが入っている*/
-                        console.log(querySnapshot.docs);
+                    /*querySnapshotに全部のデータが入っている
+                    console.log(querySnapshot.docs);
 
-                        /*生データは使いにくいので、ほしいものだけを取り出してdocumentsに入れる*/
+                    /*生データは使いにくいので、ほしいものだけを取り出してdocumentsに入れる*/
 
-                        /*🔽 ↓以下の処理は毎回、同じでイケるので使いまわしてOKD🔽 */
-                        const documentinfo = [];
+                    /*🔽 ↓以下の処理は毎回、同じでイケるので使いまわしてOKD🔽 
+                    const documentinfo = [];
 
-                        querySnapshot.docs.forEach(function (doc) {
-                            const data = {
-                                id: doc.id,
-                                data: doc.data(),
-                            };
-                            documentinfo.push(data);
-                        });
-
-                        console.log(documentinfo);
-
-                        const uid = user.uid;
-                        documentinfo.forEach(function (document) {
-
-                            if (document.id === uid) {
-                                console.log(document.data.displayname);
-                                tweetname.innerHTML = `${document.data.displayname}`;
-                                tweetsecret.innerHTML = `『${document.data.displaword}』`;
-                            };
-
-
-                        });
-
+                    querySnapshot.docs.forEach(function (doc) {
+                        const data = {
+                            id: doc.id,
+                            data: doc.data(),
+                        };
+                        documentinfo.push(data);
                     });
+
+                    console.log(documentinfo);
+
+                    const uid = user.uid;
+                    documentinfo.forEach(function (document) {
+
+                        if (document.id === uid) {
+                            console.log(document.data.displayname);
+                            tweetname.innerHTML = `${document.data.displayname}`;
+                            tweetsecret.innerHTML = `『${document.data.displaword}』`;
+                        };
+
+
+                    }); 
+
+                }); */
                     $("#tweet_area").css("display", "inline");
                     $("#sendinfo2").css("display", "none");
                 })
@@ -322,6 +325,7 @@
                     // ..
                 });
         }
+
 
 
         /*ログイン*/
@@ -412,7 +416,10 @@
 
         register.addEventListener("click", (e) => {
             loginsend();
+        });
 
+        fastlogin.addEventListener("click", (e) => {
+            special();
         });
 
 
@@ -422,7 +429,6 @@
             special();
 
         });
-
 
 
         //*コミュニティーを作成*//

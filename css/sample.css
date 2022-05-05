@@ -78,6 +78,7 @@ dt {
 input {
     width: 100%;
     height: 40px;
+    font-size: 24px;
 }
 
 .output {
@@ -109,6 +110,12 @@ button {
     height: 50px;
     width: 200px;
     font-size: 100%;
+}
+
+.fastlogin {
+    height: 30px;
+    width: 200px;
+    font-size: 80%;
 }
 
 .content {
